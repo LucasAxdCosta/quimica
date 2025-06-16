@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia Interativo e Completo de Química para a UFPR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Focus (Warm neutrals: stone/amber; Muted accents: teal/green) -->
+    <!-- Application Structure Plan: A comprehensive single-page dashboard. The structure is designed to guide a beginner student logically from high-level strategy to deep, organized content. It starts with a hero section, then a 'Strategic Dashboard' with an interactive chart of UFPR's most frequent topics, allowing users to drill down into sub-topics. This is followed by a 'Content Explorer' using a tab-and-accordion system to present the entire curriculum (General, Physical, Organic Chemistry) without overwhelming the user. Finally, an 'Action Plan' section provides concrete study methods and exam tips. This structure was chosen to transform the dense linear report into a non-linear, interactive learning path, prioritizing strategic information first and then providing detailed knowledge in a manageable format. -->
+    <!-- Visualization & Content Choices: 
+    - Report Info: Top 5 Topic Incidence % (Funções Orgânicas, Estequiometria, etc.) -> Goal: Compare/Prioritize -> Viz: Interactive Horizontal Bar Chart -> Interaction: Click bar to update a dynamic detail pane with sub-topics & context -> Justification: The bar chart provides immediate visual hierarchy of importance. The click-to-reveal interaction encourages exploration and prevents initial information overload. -> Library: Chart.js (Canvas).
+    - Report Info: Complete list of all chemistry topics and sub-topics from the report -> Goal: Organize/Inform -> Method: JS-powered Tabs (for major areas) and Accordions (for sub-sections within each area) -> Interaction: Click tabs to switch content; click accordion headers to expand/collapse details -> Justification: Manages the report's vast textual content effectively. Tabs provide high-level navigation, and accordions allow for a deep-dive into specifics without a cluttered UI, which is crucial for a beginner. -> Library: Vanilla JS + HTML/Tailwind.
+    - Report Info: Key exam characteristics (Interpretation, Interdisciplinarity) -> Goal: Inform -> Method: Icon-based cards -> Interaction: Static display with hover effects -> Justification: Summarizes key points in a visually scannable format. -> Library: HTML/Tailwind.
+    - Report Info: Study cycle (Theory -> Practice -> Review) -> Goal: Organize Process -> Method: HTML/CSS diagram -> Interaction: Static display -> Justification: Visually represents the learning process more clearly than text alone. -> Library: HTML/Tailwind.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .smooth-scroll { scroll-behavior: smooth; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+                max-height: 450px;
+            }
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-button.active {
+            background-color: #0d9488; /* teal-600 */
+            color: white;
+            border-color: #0d9488;
+        }
+        .brand-gradient {
+            background: linear-gradient(to right, #0f766e, #0d9488);
+        }
+    </style>
+</head>
+<body class="text-slate-700 smooth-scroll">
+
+    <header class="bg-white/90 backdrop-blur-lg sticky top-0 z-50 shadow-md">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold brand-gradient text-transparent bg-clip-text">Guia UFPR: Química</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#dashboard" class="text-slate-600 hover:text-teal-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                        <a href="#explorer" class="text-slate-600 hover:text-teal-600 px-3 py-2 rounded-md text-sm font-medium">Guia de Matérias</a>
+                        <a href="#plan" class="text-slate-600 hover:text-teal-600 px-3 py-2 rounded-md text-sm font-medium">Plano de Estudo</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero" class="py-20 md:py-28 bg-slate-100">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-4xl md:text-5xl font-extrabold text-slate-800 tracking-tight">Domine a Química para o Vestibular da UFPR</h2>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">Este é seu guia de estudos completo e interativo, desenhado para levar você do zero à aprovação. Explore os tópicos, entenda a prova e organize seu aprendizado de forma estratégica.</p>
+                <a href="#dashboard" class="mt-8 inline-block bg-teal-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-teal-700 transition-transform transform hover:scale-105">Começar Análise Estratégica</a>
+            </div>
+        </section>
+
+        <section id="dashboard" class="py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h3 class="text-3xl font-bold text-slate-800">Dashboard Estratégico: O Foco da Prova</h3>
+                    <p class="mt-3 text-slate-600 max-w-3xl mx-auto">Esta seção é o seu ponto de partida. Analisamos os últimos 12 anos de provas da UFPR para mostrar onde você deve concentrar sua energia. Interaja com o gráfico para entender a importância de cada tópico e o que estudar dentro deles.</p>
+                </div>
+
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl">
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+                        <div class="lg:col-span-3">
+                            <h4 class="text-xl font-semibold text-center mb-4 text-slate-700">Tópicos Mais Cobrados na UFPR (2012-2023)</h4>
+                            <div class="chart-container">
+                                <canvas id="topicsChart"></canvas>
+                            </div>
+                        </div>
+                        <div id="topic-details" class="lg:col-span-2 p-6 bg-slate-50 rounded-xl min-h-[400px] flex flex-col justify-center border border-slate-200">
+                             <div class="text-center">
+                                <span class="text-4xl">👆</span>
+                                <h5 class="text-lg font-bold text-teal-700 mt-4 mb-2">Explore o Gráfico</h5>
+                                <p class="text-slate-600">Clique em uma das barras ao lado para revelar os sub-tópicos mais importantes e por que eles são cruciais para a sua aprovação. Este é o seu mapa do tesouro!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-16">
+                    <h4 class="text-xl font-semibold text-center mb-8 text-slate-700">As Habilidades que a UFPR Valoriza</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                            <span class="text-4xl">📊</span>
+                            <h5 class="font-bold text-lg mt-3 text-teal-700">Interpretação de Dados</h5>
+                            <p class="mt-2 text-slate-600">A prova vai além da teoria, usando gráficos e tabelas. Sua habilidade de ler e aplicar dados visuais será testada.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                            <span class="text-4xl">🧬</span>
+                            <h5 class="font-bold text-lg mt-3 text-teal-700">Interdisciplinaridade</h5>
+                            <p class="mt-2 text-slate-600">A Química não vive isolada. Espere questões que a conectem com a Biologia, exigindo uma visão integrada da ciência.</p>
+                        </div>
+                         <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                            <span class="text-4xl">🧮</span>
+                            <h5 class="font-bold text-lg mt-3 text-teal-700">Raciocínio Quantitativo</h5>
+                            <p class="mt-2 text-slate-600">Os "cálculos simples" mencionados no edital testam sua agilidade e precisão em estequiometria e soluções. Domine a matemática básica!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="explorer" class="py-16 md:py-24 bg-slate-100">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h3 class="text-3xl font-bold text-slate-800">Guia de Matérias Completo</h3>
+                    <p class="mt-3 text-slate-600 max-w-3xl mx-auto">Agora que você sabe *o que* priorizar, é hora de mergulhar no conteúdo. Navegue pelas grandes áreas da Química. Cada seção contém todos os detalhes que você precisa, organizados de forma lógica para construir seu conhecimento passo a passo.</p>
+                </div>
+                <div class="max-w-5xl mx-auto">
+                    <div class="mb-6 flex flex-wrap justify-center border-b border-slate-300">
+                        <button class="tab-button active py-3 px-6 font-semibold border-b-2 border-transparent text-slate-600" data-tab="general">Química Geral e Inorgânica</button>
+                        <button class="tab-button py-3 px-6 font-semibold border-b-2 border-transparent text-slate-600" data-tab="physical">Físico-Química e Radioatividade</button>
+                        <button class="tab-button py-3 px-6 font-semibold border-b-2 border-transparent text-slate-600" data-tab="organic">Química Orgânica e Ambiental</button>
+                    </div>
+
+                    <div id="general" class="tab-content active">
+                        <p class="text-center mb-6 text-slate-600">Estes são os pilares sobre os quais todo o conhecimento químico é construído. Dominar estes conceitos é essencial para entender os tópicos mais complexos. Comece por aqui para uma base sólida.</p>
+                        <div class="space-y-3 accordion-container"></div>
+                    </div>
+                    <div id="physical" class="tab-content">
+                        <p class="text-center mb-6 text-slate-600">Aqui a Química se torna quantitativa e energética. Esta área lida com os cálculos, a energia, a velocidade das transformações químicas e o estudo de fenômenos nucleares. A estequiometria é um dos tópicos mais importantes da prova.</p>
+                        <div class="space-y-3 accordion-container"></div>
+                    </div>
+                    <div id="organic" class="tab-content">
+                        <p class="text-center mb-6 text-slate-600">Esta é, de longe, a área de maior peso na UFPR, incluindo também suas aplicações no meio ambiente. Dedique atenção especial às funções e reações orgânicas, pois elas são a chave para um grande número de questões.</p>
+                        <div class="space-y-3 accordion-container"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="plan" class="py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h3 class="text-3xl font-bold text-slate-800">Seu Plano de Ação para a Aprovação</h3>
+                    <p class="mt-3 text-slate-600 max-w-3xl mx-auto">Conhecimento sem método leva ao cansaço. Use estas estratégias e dicas para organizar sua rotina, otimizar seu tempo e chegar no dia da prova com confiança total.</p>
+                </div>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h4 class="text-xl font-semibold mb-4 text-slate-700">O Ciclo de Estudo Infalível</h4>
+                        <div class="flex flex-col space-y-4">
+                             <div class="flex items-center p-4 bg-slate-50 rounded-lg">
+                                <span class="text-3xl mr-4">📖</span>
+                                <div><h5 class="font-bold">1. Teoria</h5><p class="text-slate-600">Entenda os conceitos, o "porquê" das coisas. Não decore, compreenda.</p></div>
+                            </div>
+                            <div class="flex items-center p-4 bg-slate-50 rounded-lg">
+                                <span class="text-3xl mr-4">✍️</span>
+                                <div><h5 class="font-bold">2. Prática</h5><p class="text-slate-600">Resolva muitos exercícios. Comece pelos fáceis e avance. É aqui que o conhecimento se fixa.</p></div>
+                            </div>
+                            <div class="flex items-center p-4 bg-slate-50 rounded-lg">
+                                <span class="text-3xl mr-4">🔄</span>
+                                <div><h5 class="font-bold">3. Revisão</h5><p class="text-slate-600">Revise periodicamente. Use resumos, flashcards e, principalmente, resolva provas antigas.</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h4 class="text-xl font-semibold mb-4 text-slate-700">Dicas de Ouro para a Prova</h4>
+                        <ul class="space-y-4">
+                            <li class="flex items-start">
+                                <span class="text-teal-500 font-bold mr-3 mt-1">&#10004;</span>
+                                <p class="text-slate-600"><strong>Priorize com o Dashboard:</strong> Use o gráfico da seção "Dashboard" para guiar seu tempo de estudo. Mais tempo nos tópicos mais quentes!</p>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-teal-500 font-bold mr-3 mt-1">&#10004;</span>
+                                <p class="text-slate-600"><strong>Simule o Dia D:</strong> Resolva provas antigas da UFPR cronometrando o tempo. Isso treina seu ritmo e controle emocional.</p>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-teal-500 font-bold mr-3 mt-1">&#10004;</span>
+                                <p class="text-slate-600"><strong>Pense como a Banca:</strong> Lembre-se que a UFPR quer ver sua capacidade de interpretar e conectar ideias. Em cada questão, pergunte-se: "Qual habilidade eles estão testando aqui?".</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="bg-slate-800 text-slate-300">
+        <div class="container mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm">
+            <p>&copy; 2024 Guia Interativo de Química. Uma ferramenta para impulsionar seus estudos para a UFPR.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const chartData = {
+                labels: ['Funções Orgânicas', 'Estequiometria', 'Reações Orgânicas', 'Reações Químicas', 'Moléculas e Propriedades'],
+                percentages: [13.8, 10.3, 10.3, 8.6, 6.9],
+                details: [
+                    { 
+                        title: 'Funções Orgânicas (13.8%)', 
+                        context: 'Este é o tópico mais importante! É a base para entender a Química da vida e dos materiais. A UFPR quer que você identifique compostos e preveja suas propriedades.',
+                        subs: ['Funções dos aminoácidos', 'Funções nitrogenadas', 'Identificação e nomenclatura de funções.'] 
+                    },
+                    { 
+                        title: 'Estequiometria (10.3%)', 
+                        context: 'Aqui testamos suas habilidades de cálculo e raciocínio quantitativo. É a matemática da Química, fundamental para qualquer análise de laboratório.',
+                        subs: ['Cálculo estequiométrico', 'Fórmula percentual', 'Massa atômica, molecular e molar', 'Reagente em excesso e limitante.'] 
+                    },
+                    { 
+                        title: 'Reações Orgânicas (10.3%)', 
+                        context: 'Se Funções Orgânicas é sobre "quem são" os compostos, Reações é sobre "o que eles fazem". O foco é na interpretação das transformações.',
+                        subs: ['Interpretação de reações', 'Reações de oxirredução', 'Saponificação (produção de sabão).'] 
+                    },
+                    { 
+                        title: 'Reações Químicas (8.6%)', 
+                        context: 'Abrange os princípios gerais de reações, principalmente inorgânicas. O balanceamento de equações é uma habilidade básica e essencial que a prova irá cobrar.',
+                        subs: ['Balanceamento de equações', 'Reações de combustão', 'Reações de neutralização (ácido + base).'] 
+                    },
+                    { 
+                        title: 'Moléculas e Propriedades (6.9%)', 
+                        context: 'Por que algumas substâncias são líquidas e outras gasosas? Por que óleo e água não se misturam? Este tópico explica as propriedades da matéria com base nas interações moleculares.',
+                        subs: ['Forças intermoleculares (Van der Waals, Ligação de Hidrogênio)', 'Ligações químicas (Iônica, Covalente).'] 
+                    }
+                ]
+            };
+
+            const ctx = document.getElementById('topicsChart').getContext('2d');
+            const topicsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: '% de Incidência',
+                        data: chartData.percentages,
+                        backgroundColor: ['#0f766e', '#14b8a6', '#5eead4', '#99f6e4', '#ccfbf1'],
+                        borderColor: '#042f2e',
+                        borderWidth: 1,
+                        borderRadius: 5,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { beginAtZero: true, title: { display: true, text: 'Porcentagem de Incidência (%)', font: { weight: 'bold' } } },
+                        y: { ticks: { autoSkip: false, callback: (value) => chartData.labels[value].length > 20 ? chartData.labels[value].slice(0, 20) + '...' : chartData.labels[value] } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (context) => ` ${context.dataset.label}: ${context.raw}%` } }
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const topicDetail = chartData.details[index];
+                            const detailsContainer = document.getElementById('topic-details');
+                            detailsContainer.innerHTML = `
+                                <h5 class="text-xl font-extrabold text-teal-700 mb-2">${topicDetail.title}</h5>
+                                <p class="text-slate-600 mb-4 text-sm font-medium italic">${topicDetail.context}</p>
+                                <p class="mb-2 font-semibold text-slate-700">Sub-tópicos chave:</p>
+                                <ul class="space-y-1.5 text-slate-600 list-disc list-inside">
+                                    ${topicDetail.subs.map(sub => `<li>${sub}</li>`).join('')}
+                                </ul>`;
+                        }
+                    }
+                }
+            });
+
+            const accordionData = {
+                general: [
+                    { 
+                        title: '1. Introdução à Química', 
+                        content: `
+                            <ul>
+                                <li>O que é Química?</li>
+                                <li>Propriedades da matéria (gerais e específicas)</li>
+                                <li>Estados físicos da matéria (sólido, líquido e gasoso)</li>
+                                <li>Mudanças de estado físico</li>
+                                <li>Transformações físicas e químicas</li>
+                                <li>Métodos de separação de misturas (decantação, destilação, filtração etc.)</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '2. Teoria Atômica e Estrutura da Matéria', 
+                        content: `
+                            <ul>
+                                <li>Modelos atômicos (Dalton, Thomson, Rutherford, Bohr)</li>
+                                <li>Estrutura do átomo (prótons, nêutrons e elétrons)</li>
+                                <li>Número atômico (Z) e número de massa (A)</li>
+                                <li>Íons (cátions e ânions)</li>
+                                <li>Isótopos, isóbaros e isótonos</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '3. Tabela Periódica', 
+                        content: `
+                            <ul>
+                                <li>Estrutura e organização da Tabela Periódica</li>
+                                <li>Grupos e períodos</li>
+                                <li>Classificação dos elementos (metais, ametais, gases nobres, semimetais)</li>
+                                <li>Tendências periódicas: Raio atômico, Energia de ionização, Eletroafinidade, Eletronegatividade</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '4. Ligações Químicas', 
+                        content: `
+                            <ul>
+                                <li>Ligação iônica (metal + ametal)</li>
+                                <li>Ligação covalente (ametal + ametal)</li>
+                                <li>Ligação metálica (metal + metal)</li>
+                                <li>Propriedades das substâncias iônicas, moleculares e metálicas</li>
+                                <li>Polaridade das ligações e das moléculas</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '5. Funções Inorgânicas', 
+                        content: `
+                            <ul>
+                                <li>Conceito de ácido, base, sal e óxido</li>
+                                <li>Nomenclatura de: Ácidos (ex: HCl = ácido clorídrico), Bases (ex: NaOH = hidróxido de sódio), Sais (ex: NaCl = cloreto de sódio), Óxidos (ex: CO₂ = dióxido de carbono)</li>
+                                <li>Propriedades e aplicações dessas funções</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '6. Reações Químicas', 
+                        content: `
+                            <ul>
+                                <li>Identificação de reações químicas</li>
+                                <li>Tipos de reações: Síntese (ou adição), Análise (ou decomposição), Simples troca, Dupla troca, Combustão</li>
+                                <li>Balanceamento de equações químicas (por tentativa e método das oxirreduções)</li>
+                                <li>Leis ponderais: Lei de Lavoisier, Lei de Proust</li>
+                            </ul>`
+                    }
+                ],
+                physical: [
+                    { 
+                        title: '7. Cálculos Estequiométricos', 
+                        content: `
+                            <ul>
+                                <li>Mol (número de Avogadro)</li>
+                                <li>Massa molar</li>
+                                <li>Relações molares e de massa nas reações químicas</li>
+                                <li>Cálculo de reagente em excesso e limitante</li>
+                                <li>Rendimento percentual e pureza de reagentes</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '8. Soluções', 
+                        content: `
+                            <ul>
+                                <li>Conceito de solução, soluto, solvente</li>
+                                <li>Concentração comum (g/L), concentração molar (mol/L), porcentagem</li>
+                                <li>Diluição de soluções</li>
+                                <li>Mistura de soluções com mesmo ou diferentes solutos</li>
+                                <li>Cálculo de pH e pOH (em soluções ácidas e básicas simples)</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '9. Termoquímica', 
+                        content: `
+                            <ul>
+                                <li>Reações exotérmicas e endotérmicas</li>
+                                <li>Entalpia (ΔH)</li>
+                                <li>Gráficos de energia</li>
+                                <li>Cálculo de variação de entalpia</li>
+                                <li>Lei de Hess</li>
+                                <li>Energia de ligação</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '10. Cinética Química', 
+                        content: `
+                            <ul>
+                                <li>Velocidade das reações químicas</li>
+                                <li>Fatores que influenciam a velocidade (temperatura, concentração, superfície de contato, catalisador)</li>
+                                <li>Energia de ativação</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '11. Equilíbrio Químico', 
+                        content: `
+                            <ul>
+                                <li>Reações reversíveis</li>
+                                <li>Constante de equilíbrio (Kc)</li>
+                                <li>Fatores que influenciam o equilíbrio (Princípio de Le Chatelier)</li>
+                                <li>Equilíbrio iônico: ionização e dissociação</li>
+                                <li>Produto iônico da água</li>
+                                <li>pH e pOH mais aprofundados</li>
+                                <li>Indicadores ácido-base</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '13. Eletroquímica', 
+                        content: `
+                            <ul>
+                                <li>Pilhas e baterias</li>
+                                <li>Corrosão</li>
+                                <li>Eletrólise (com e sem eletrodos inertes)</li>
+                                <li>Reações de oxirredução (oxidação e redução)</li>
+                                <li>Nox (número de oxidação)</li>
+                                <li>Balanceamento de equações redox</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '15. Radioatividade', 
+                        content: `
+                            <ul>
+                                <li>Tipos de radiação (alfa, beta, gama)</li>
+                                <li>Meia-vida</li>
+                                <li>Aplicações da radioatividade (medicina, datação, energia nuclear)</li>
+                            </ul>`
+                    }
+                ],
+                organic: [
+                    { 
+                        title: '12. Química Orgânica', 
+                        content: `
+                            <ul>
+                                <li>Introdução: características do carbono</li>
+                                <li>Cadeias carbônicas: abertas, fechadas, saturadas, insaturadas, aromáticas</li>
+                                <li>Funções orgânicas mais importantes: Hidrocarbonetos, Álcoois, Aldeídos, Cetonas, Ácidos carboxílicos, Ésteres, Aminas e amidas</li>
+                                <li>Isomeria (plana e espacial)</li>
+                                <li>Reações orgânicas: adição, substituição, eliminação, combustão</li>
+                                <li>Polímeros e monômeros</li>
+                                <li>Biocombustíveis, gasolina, etanol e aplicações ambientais</li>
+                            </ul>`
+                    },
+                    { 
+                        title: '14. Química Ambiental', 
+                        content: `
+                            <ul>
+                                <li>Chuva ácida</li>
+                                <li>Camada de ozônio</li>
+                                <li>Efeito estufa e aquecimento global</li>
+                                <li>Poluição da água e do ar</li>
+                                <li>Lixo e tratamento de resíduos</li>
+                                <li>Sustentabilidade e fontes de energia</li>
+                            </ul>`
+                    }
+                ]
+            };
+            
+            function createAccordion(container, data) {
+                container.innerHTML = '';
+                data.forEach(item => {
+                    const accordionItem = document.createElement('div');
+                    accordionItem.classList.add('bg-white', 'rounded-lg', 'shadow-md', 'overflow-hidden');
+                    accordionItem.innerHTML = `
+                        <button class="accordion-toggle w-full flex justify-between items-center text-left p-4 font-semibold text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none">
+                            <span>${item.title}</span>
+                            <span class="transform transition-transform duration-300 text-teal-500 text-xl font-bold">+</span>
+                        </button>
+                        <div class="accordion-content">
+                            <div class="p-4 border-t border-slate-200 text-slate-600">${item.content}</div>
+                        </div>`;
+                    container.appendChild(accordionItem);
+                });
+            }
+
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    const tabId = button.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // Initial creation of accordions for the active tab
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                const container = tab.querySelector('.accordion-container');
+                if (container) {
+                    const tabId = tab.id;
+                    createAccordion(container, accordionData[tabId]);
+                }
+            });
+
+            document.getElementById('explorer').addEventListener('click', function(e) {
+                if (e.target.closest('.accordion-toggle')) {
+                    const toggle = e.target.closest('.accordion-toggle');
+                    const content = toggle.nextElementSibling;
+                    const icon = toggle.querySelector('span:last-child');
+                    
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                        icon.style.transform = 'rotate(0deg)';
+                        icon.textContent = '+';
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        icon.style.transform = 'rotate(45deg)';
+                        icon.textContent = '×';
+                    }
+                }
+            });
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
